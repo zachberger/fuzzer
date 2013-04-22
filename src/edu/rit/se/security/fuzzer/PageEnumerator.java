@@ -78,7 +78,6 @@ public class PageEnumerator {
 				Page newPage = link.openLinkInNewWindow();
 				newURL = newPage.getUrl();
 				contentType = page.getWebResponse().getContentType();
-				System.err.println( contentType );
 				if( !contentType.equals("text/html") ){
 					System.err.println("Ignorning " + contentType + ": " +  newURL );
 					continue;
@@ -95,12 +94,22 @@ public class PageEnumerator {
 			
 			PageInfo i = new PageInfo();
 			i.rootURL = newURL;
-			
+			String query = newURL.getQuery();
+
 			if( !foundPages.contains(i) ){
 				System.out.println("Found new "+contentType+": " + newURL );
-				i.supportedActions.get(HTTPMethod.GET).add(newURL.getQuery());
+				if( query != null ) i.supportedActions.get(HTTPMethod.GET).add(query);
 				foundPages.add( i );
 				discoverLinks( webClient, newURL );
+			}else{
+				//Find and add
+				//THIS IS BADDDDD
+				for( PageInfo p : foundPages ){
+					if( p.equals(i) ){
+						if( query != null ) p.supportedActions.get(HTTPMethod.GET).add(query);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -148,7 +157,13 @@ public class PageEnumerator {
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();
 			for( PageInfo i : pageEnumerator.getResults() ){
-				System.out.println(i.rootURL);
+				System.out.println("\n" + i.rootURL);
+				for( HTTPMethod m : HTTPMethod.values() ){
+					System.out.println( m + ": ");
+					for( String q : i.supportedActions.get(m) ){
+						System.out.println("\t"+q);
+					}
+				}
 			}
 
 		}

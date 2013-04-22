@@ -62,9 +62,17 @@ public class PageEnumerator {
 	
 	private void discoverLinks( WebClient webClient, URL rootURL ) 
 			throws FailingHttpStatusCodeException, IOException {
-		HtmlPage page = webClient.getPage( rootURL );
+		
+		HtmlPage page;
 		URL newURL;
 		String contentType;
+		try{
+			page = webClient.getPage( rootURL );
+		}catch( ClassCastException e ){
+			logger.warn("Skipping malformed url/response: " + rootURL );
+			return;
+		}
+		
 		for( HtmlAnchor link : page.getAnchors() ) {
 			try{			
 				Page newPage = link.openLinkInNewWindow();
@@ -121,7 +129,6 @@ public class PageEnumerator {
 	 * @throws FileNotFoundException 
 	 */
 	private List<String> getPageNames( File file ) throws FileNotFoundException, IOException{
-		
 		List<String> myList = new LinkedList<>();
 		try (FileReader fileReader = new FileReader(file)) {
 			try (BufferedReader br = new BufferedReader(fileReader)){ 
@@ -136,7 +143,7 @@ public class PageEnumerator {
 
 
 		public static void main(String[] args) throws MalformedURLException {
-			String rootURL = "http://localhost:8080/bodgeit";
+			String rootURL = "http://www.cs.rit.edu/~jsb/20123/OS2/syllabus.php";
 
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();

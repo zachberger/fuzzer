@@ -2,3 +2,11 @@ admin
 default
 store
 index
+config
+configure
+CONFIG
+CONFIGURE
+INDEX
+ADMIN
+DEFAULT
+STORE

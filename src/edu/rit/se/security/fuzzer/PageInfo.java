@@ -50,32 +50,6 @@ public class PageInfo {
 		return origNoQuery.hashCode();
 	}
 	
-	/**
-	 * Discovers all inputs of the page and stores them in supportedActions
-	 * 
-	 * @throws FailingHttpStatusCodeException
-	 * @throws IOException
-	 */
-	public void discoverInputs() throws FailingHttpStatusCodeException, IOException{
-		WebClient webClient = new WebClient();
-		HtmlPage page = webClient.getPage(rootURL);
-		for(HtmlForm form : page.getForms()){
-			Set<String> methodInputs = null;
-			switch(form.getMethodAttribute().toLowerCase()){
-				case "post": methodInputs = supportedActions.get(HTTPMethod.POST); break;
-				case "get": methodInputs = supportedActions.get(HTTPMethod.GET); break;
-				case "put": methodInputs = supportedActions.get(HTTPMethod.PUT); break;
-				case "delete": methodInputs = supportedActions.get(HTTPMethod.DELETE); break;
-				default: methodInputs = supportedActions.get(HTTPMethod.GET); // No form method was specified, defaults to GET
-			}
-			if(methodInputs != null){ // Ensure that the form is set
-				for(DomAttr input : (List<DomAttr>)form.getByXPath("//input/@id")){
-					methodInputs.add(input.getValue());
-				}
-			}
-		}
-	}
-	
 	public String toString(){
 		return rootURL.toString();
 	}

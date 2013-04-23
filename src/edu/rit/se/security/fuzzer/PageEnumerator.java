@@ -16,7 +16,9 @@ import org.apache.log4j.Logger;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomAttr;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class PageEnumerator {
@@ -32,21 +34,22 @@ public class PageEnumerator {
 
 	public boolean start(){
 		WebClient wc = new WebClient();
+		wc.getOptions().setTimeout(0);
 		try{
+			System.out.println("******** Crawling For Pages ********");
 			discoverLinks( wc, rootURL );
 			List<String> myListNames = null, myListExtensions = null;
 			File page_names = new File("resources/page_names.txt");
 			File extensions = new File("resources/extensions.txt");
 			try {
 				myListNames =  getPageNames(page_names);
-				for (String name : myListNames) System.out.println(name);
 				myListExtensions =  getPageNames(extensions);
-				for (String ext : myListExtensions) System.out.println(ext);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			System.out.println("******** Discovering Un-Linked Pages ********");
 			discoverUnlinkedPages(myListNames, myListExtensions, wc);
 			return true;
 		}catch (FailingHttpStatusCodeException | IOException e) {
@@ -92,24 +95,34 @@ public class PageEnumerator {
 				continue;
 			}
 			
-			PageInfo i = new PageInfo();
-			i.rootURL = newURL;
+			PageInfo pageInfo = new PageInfo();
+			pageInfo.rootURL = newURL;
 			String query = newURL.getQuery();
-
-			if( !foundPages.contains(i) ){
+			
+			if( foundPages.add(pageInfo) ){
 				System.out.println("Found new "+contentType+": " + newURL );
-				if( query != null ) i.supportedActions.get(HTTPMethod.GET).add(query);
-				foundPages.add( i );
+				discoverInputs(pageInfo, page);
+				addActions(query, pageInfo);
 				discoverLinks( webClient, newURL );
 			}else{
 				//Find and add
 				//THIS IS BADDDDD
 				for( PageInfo p : foundPages ){
-					if( p.equals(i) ){
-						if( query != null ) p.supportedActions.get(HTTPMethod.GET).add(query);
+					if( p.equals(pageInfo) ){
+						addActions(query, p);
 						break;
 					}
 				}
+			}
+		}
+	}
+	
+	private void addActions(String query, PageInfo pageInfo){
+		if( query != null ){
+			String[] params = query.split("&|;");
+			Set<String> actions = pageInfo.supportedActions.get(HTTPMethod.GET);
+			for(String param : params){
+				actions.add(param.split("=",2)[0].trim());
 			}
 		}
 	}
@@ -149,6 +162,42 @@ public class PageEnumerator {
 		} 
 		return myList;
 	}
+	
+	/**
+	 * Discovers all inputs of the page and stores them in supportedActions
+	 * 
+	 * @throws FailingHttpStatusCodeException
+	 * @throws IOException
+	 */
+	public void discoverInputs(PageInfo pageInfo, HtmlPage page) throws FailingHttpStatusCodeException, IOException{
+		for(HtmlForm form : page.getForms()){
+			Set<String> methodInputs = null;
+			switch(form.getMethodAttribute().toLowerCase()){
+				case "post": methodInputs = pageInfo.supportedActions.get(HTTPMethod.POST); break;
+				case "get": methodInputs = pageInfo.supportedActions.get(HTTPMethod.GET); break;
+				case "put": methodInputs = pageInfo.supportedActions.get(HTTPMethod.PUT); break;
+				case "delete": methodInputs = pageInfo.supportedActions.get(HTTPMethod.DELETE); break;
+				default: methodInputs = pageInfo.supportedActions.get(HTTPMethod.GET); // No form method was specified, defaults to GET
+			}
+			if(methodInputs != null){ // Ensure that the form is set
+				for(DomAttr input : (List<DomAttr>)form.getByXPath("//input/@id")){
+					methodInputs.add(input.getValue());
+				}
+			}
+		}
+	}
+	
+	public void discoverInputs(PageInfo pageInfo, WebClient webClient) throws FailingHttpStatusCodeException, IOException{
+		try{
+			HtmlPage page = webClient.getPage(pageInfo.rootURL);
+			discoverInputs(pageInfo, page);
+		} catch(ClassCastException e){
+			logger.warn("Skipping malformed url/response: " + pageInfo.rootURL );
+		}
+	}
+	
+	
+	
 
 
 		public static void main(String[] args) throws MalformedURLException {

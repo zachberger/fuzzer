@@ -205,15 +205,7 @@ public class PageEnumerator {
 
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();
-			for( PageInfo i : pageEnumerator.getResults() ){
-				System.out.println("\n" + i.rootURL);
-				for( HTTPMethod m : HTTPMethod.values() ){
-					System.out.println( m + ": ");
-					for( String q : i.supportedActions.get(m) ){
-						System.out.println("\t"+q);
-					}
-				}
-			}
+			AttackSurfaceAnalyzer.Analyze(new LinkedList<PageInfo>(pageEnumerator.getResults()));
 
 		}
 }

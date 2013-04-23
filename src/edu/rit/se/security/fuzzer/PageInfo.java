@@ -50,6 +50,15 @@ public class PageInfo {
 		return origNoQuery.hashCode();
 	}
 	
+	public int inputCount(){
+		return inputCount(HTTPMethod.GET) + inputCount(HTTPMethod.POST) + 
+				inputCount(HTTPMethod.PUT) + inputCount(HTTPMethod.DELETE);
+	}
+	
+	public int inputCount(HTTPMethod method){
+		return supportedActions.get(method).size();
+	}
+	
 	public String toString(){
 		return rootURL.toString();
 	}

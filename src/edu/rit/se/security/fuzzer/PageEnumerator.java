@@ -130,9 +130,9 @@ public class PageEnumerator {
 	private void discoverUnlinkedPages(List<String> pageNames, List<String> extensions, WebClient webClient){
 		for(String page : pageNames){
 			for(String ext : extensions){
-				String pageURL = "/" + page +  "." + ext;
+				String pageURL = page +  "." + ext;
 				try {
-					HtmlPage success = webClient.getPage( rootURL + pageURL );
+					HtmlPage success = webClient.getPage( rootURL.getFile() + pageURL );
 					PageInfo p = new PageInfo();
 					p.rootURL = success.getUrl();
 					foundPages.add(p);
@@ -201,7 +201,7 @@ public class PageEnumerator {
 
 
 		public static void main(String[] args) throws MalformedURLException {
-			String rootURL = "http://www.cs.rit.edu/~jsb/20123/OS2/syllabus.php";
+			String rootURL = "http://127.0.0.1:8080/bodgeit/";
 
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();

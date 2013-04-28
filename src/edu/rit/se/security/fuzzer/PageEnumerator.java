@@ -26,15 +26,19 @@ public class PageEnumerator {
 	private final URL rootURL;
 	private Set<PageInfo> foundPages;
 	private Logger logger = Logger.getLogger( PageEnumerator.class );
+	private WebClient wc;
 		
 	public PageEnumerator(URL rootURL){
 		this.rootURL = rootURL;
 		foundPages = new HashSet<PageInfo>();
+		wc = new WebClient();
+		wc.getOptions().setTimeout(0);
 	}
 
+	public void beforeStart(){}
+	
 	public boolean start(){
-		WebClient wc = new WebClient();
-		wc.getOptions().setTimeout(0);
+		beforeStart();
 		try{
 			System.out.println("******** Crawling For Pages ********");
 			discoverLinks( wc, rootURL );

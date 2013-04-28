@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.varia.NullAppender;
+
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -32,6 +35,7 @@ public class DVWAPageEnumerator extends PageEnumerator {
 	}
 
 	public static void main(String[] args) throws MalformedURLException{
+		BasicConfigurator.configure( new NullAppender() );
 		PageEnumerator p = new DVWAPageEnumerator(new URL("http://127.0.0.1/dvwa/login.php"));
 		p.start();
 	}

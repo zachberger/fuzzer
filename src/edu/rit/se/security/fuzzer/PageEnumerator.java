@@ -12,6 +12,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.logging.impl.NoOpLog;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.apache.log4j.varia.NullAppender;
+
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomAttr;
@@ -202,7 +208,7 @@ public class PageEnumerator {
 	
 		public static void main(String[] args) throws MalformedURLException {
 			String rootURL = "http://127.0.0.1:8080/bodgeit/";
-
+			BasicConfigurator.configure( new NullAppender() );
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();
 		}

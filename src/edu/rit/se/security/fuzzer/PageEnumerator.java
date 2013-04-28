@@ -20,6 +20,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.UrlUtils;
 
 public class PageEnumerator {
 
@@ -70,20 +71,49 @@ public class PageEnumerator {
 	}
 	
 	private void discoverLinks( HtmlPage page ) throws IOException {
-		URL newURL = null;
-		for( HtmlAnchor link : page.getAnchors() ) {
-			try{			
-				newURL = new URL( rootURL, link.getHrefAttribute() );
-				if( !newURL.getHost().equals(rootURL.getHost())){
-					System.err.println( "Ignoring off domain url: " + newURL );
+		if( isPageUnique( page.getUrl() ) ){
+			addPage(page);
+			for( HtmlAnchor link : page.getAnchors() ) {
+				try{			
+					URL newURL = new URL( UrlUtils.resolveUrl(page.getUrl(), link.getHrefAttribute() ) );
+					if( !newURL.getHost().equals(rootURL.getHost())){
+						//System.err.println( "Ignoring off domain url: " + newURL );
+						continue;
+					}
+					discoverLinks( (HtmlPage) link.click() );
+				}catch(Exception e ){
+					System.err.println(e.getMessage());
 					continue;
 				}
-				//TODO: check for uniqueness here
-				addPage(newURL, page);
-			}catch(Exception e ){
-				System.err.println(e.getMessage());
-				continue;
 			}
+			
+			for( HtmlElement e : page.getHtmlElementDescendants() ){
+				if( e.hasAttribute("onclick") ){
+					HtmlPage p = e.click();
+					URL newURL = new URL( UrlUtils.resolveUrl(page.getUrl(), p.getUrl().getPath() ) );
+					//If we're on a new page
+					if( !newURL.equals(page.getUrl()) ){
+						discoverLinks( p );
+					}
+				}
+			}
+		}else{
+			PageInfo np = new PageInfo( page.getUrl() );
+			for( PageInfo p : foundPages ){
+				if( p.equals(np) ){
+					addActions(page.getUrl().getQuery(), p);
+					break;
+				}
+			}	
+		}
+	}
+	
+	private boolean isPageUnique( URL newURL ){
+		try {
+			PageInfo pageInfo = new PageInfo( newURL );
+			return !foundPages.contains(pageInfo);
+		} catch (MalformedURLException e) {
+			return false;
 		}
 	}
 	
@@ -103,8 +133,7 @@ public class PageEnumerator {
 				String pageURL = page +  "." + ext;
 				try {
 					HtmlPage success = webClient.getPage( new URL(rootURL,pageURL) );
-					PageInfo p = new PageInfo();
-					p.rootURL = success.getUrl();
+					PageInfo p = new PageInfo( success.getUrl() );
 					foundPages.add(p);
 				} catch (Exception e) {
 					//System.err.println(e.getMessage());
@@ -113,37 +142,11 @@ public class PageEnumerator {
 		}
 	}
 	
-	private void addPage(URL newURL, HtmlPage oldPage) throws FailingHttpStatusCodeException, IOException{
-		PageInfo pageInfo = new PageInfo();
-		if(newURL.getQuery() == null){
-			pageInfo.rootURL = newURL;
-		} else {
-			pageInfo.rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
-		}
-		String query = newURL.getQuery();
-		
-		if( foundPages.add(pageInfo) ){
-			System.out.println("Found new page: " + newURL );
-			discoverFormInputs(pageInfo, oldPage);
-			for( HtmlElement e : oldPage.getHtmlElementDescendants() ){
-				if( e.hasAttribute("onclick") ){
-					HtmlPage p = e.click();
-					discoverLinks( p );
-				}
-			}
-			addActions(query, pageInfo);
-			
-			discoverLinks( (HtmlPage) wc.getPage( newURL ) );
-		}else{
-			//Find and add
-			//THIS IS BADDDDD
-			for( PageInfo p : foundPages ){
-				if( p.equals(pageInfo) ){
-					addActions(query, p);
-					break;
-				}
-			}
-		}
+	private void addPage(HtmlPage oldPage) throws FailingHttpStatusCodeException, IOException{
+		//System.out.println("Found new page: " + oldPage.getUrl() );
+		PageInfo pageInfo = new PageInfo( oldPage.getUrl() );
+		foundPages.add(pageInfo);
+		discoverFormInputs(pageInfo, oldPage);
 	}
 	
 	/**
@@ -183,7 +186,7 @@ public class PageEnumerator {
 				default: methodInputs = pageInfo.supportedActions.get(HTTPMethod.GET); // No form method was specified, defaults to GET
 			}
 			if(methodInputs != null){ // Ensure that the form is set
-				for(DomAttr input : (List<DomAttr>)form.getByXPath("//input/@id")){
+				for(DomAttr input : (List<DomAttr>)form.getByXPath("//input/@name")){
 					methodInputs.add(input.getValue());
 				}
 			}

@@ -1,6 +1,7 @@
 package edu.rit.se.security.fuzzer;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +21,12 @@ public class PageInfo {
 	URL rootURL;
 	Map<HTTPMethod,Set<String>> supportedActions;
 	
-	public PageInfo(){
+	public PageInfo( URL newURL ) throws MalformedURLException{
+		if(newURL.getQuery() == null){
+			rootURL = newURL;
+		} else {
+			rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
+		}
 		supportedActions = new HashMap<HTTPMethod,Set<String>>();
 		supportedActions.put(HTTPMethod.GET, new HashSet<String>());	
 		supportedActions.put(HTTPMethod.PUT, new HashSet<String>());	

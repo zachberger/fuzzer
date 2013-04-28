@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import org.apache.log4j.Logger;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomAttr;
@@ -26,7 +25,6 @@ public class PageEnumerator {
 
 	protected URL rootURL;
 	private Set<PageInfo> foundPages;
-	private Logger logger = Logger.getLogger( PageEnumerator.class );
 	protected WebClient wc;
 		
 	public PageEnumerator(URL rootURL){
@@ -198,7 +196,7 @@ public class PageEnumerator {
 			HtmlPage page = webClient.getPage(pageInfo.rootURL);
 			discoverFormInputs(pageInfo, page);
 		} catch(ClassCastException e){
-			logger.warn("Skipping malformed url/response: " + pageInfo.rootURL );
+		
 		}
 	}
 	

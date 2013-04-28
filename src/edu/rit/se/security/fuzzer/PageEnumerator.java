@@ -100,7 +100,11 @@ public class PageEnumerator {
 			}
 			
 			PageInfo pageInfo = new PageInfo();
-			pageInfo.rootURL = newURL;
+			if(newURL.getQuery() == null){
+				pageInfo.rootURL = newURL;
+			} else {
+				pageInfo.rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
+			}
 			String query = newURL.getQuery();
 			
 			if( foundPages.add(pageInfo) ){

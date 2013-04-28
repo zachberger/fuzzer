@@ -17,6 +17,7 @@ import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomAttr;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
@@ -40,7 +41,8 @@ public class PageEnumerator {
 		beforeStart();
 		try{
 			System.out.println("******** Crawling For Pages ********");
-			discoverLinks( rootURL );
+			HtmlPage p = wc.getPage( rootURL );
+			discoverLinks( p );
 			List<String> myListNames = null, myListExtensions = null;
 			File page_names = new File("resources/page_names.txt");
 			File extensions = new File("resources/extensions.txt");
@@ -66,17 +68,8 @@ public class PageEnumerator {
 		return foundPages;
 	}
 	
-	private void discoverLinks( URL rootURL ) throws IOException {
-		
-		HtmlPage page;
+	private void discoverLinks( HtmlPage page ) throws IOException {
 		URL newURL = null;
-		try{
-			page = wc.getPage( rootURL );
-		}catch( ClassCastException e ){
-			logger.warn("Skipping malformed url/response: " + rootURL );
-			return;
-		}
-		
 		for( HtmlAnchor link : page.getAnchors() ) {
 			try{			
 				newURL = new URL( rootURL, link.getHrefAttribute() );
@@ -84,34 +77,11 @@ public class PageEnumerator {
 					System.err.println( "Ignoring off domain url: " + newURL );
 					continue;
 				}
-
+				//TODO: check for uniqueness here
+				addPage(newURL, page);
 			}catch(Exception e ){
 				System.err.println(e.getMessage());
 				continue;
-			}
-			
-			PageInfo pageInfo = new PageInfo();
-			if(newURL.getQuery() == null){
-				pageInfo.rootURL = newURL;
-			} else {
-				pageInfo.rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
-			}
-			String query = newURL.getQuery();
-			
-			if( foundPages.add(pageInfo) ){
-				System.out.println("Found new page: " + newURL );
-				discoverInputs(pageInfo, page);
-				addActions(query, pageInfo);
-				discoverLinks( newURL );
-			}else{
-				//Find and add
-				//THIS IS BADDDDD
-				for( PageInfo p : foundPages ){
-					if( p.equals(pageInfo) ){
-						addActions(query, p);
-						break;
-					}
-				}
 			}
 		}
 	}
@@ -137,6 +107,39 @@ public class PageEnumerator {
 					foundPages.add(p);
 				} catch (Exception e) {
 					//System.err.println(e.getMessage());
+				}
+			}
+		}
+	}
+	
+	private void addPage(URL newURL, HtmlPage oldPage) throws FailingHttpStatusCodeException, IOException{
+		PageInfo pageInfo = new PageInfo();
+		if(newURL.getQuery() == null){
+			pageInfo.rootURL = newURL;
+		} else {
+			pageInfo.rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
+		}
+		String query = newURL.getQuery();
+		
+		if( foundPages.add(pageInfo) ){
+			System.out.println("Found new page: " + newURL );
+			discoverFormInputs(pageInfo, oldPage);
+			for( HtmlElement e : oldPage.getHtmlElementDescendants() ){
+				if( e.hasAttribute("onclick") ){
+					HtmlPage p = e.click();
+					discoverLinks( p );
+				}
+			}
+			addActions(query, pageInfo);
+			
+			discoverLinks( (HtmlPage) wc.getPage( newURL ) );
+		}else{
+			//Find and add
+			//THIS IS BADDDDD
+			for( PageInfo p : foundPages ){
+				if( p.equals(pageInfo) ){
+					addActions(query, p);
+					break;
 				}
 			}
 		}
@@ -168,7 +171,7 @@ public class PageEnumerator {
 	 * @throws FailingHttpStatusCodeException
 	 * @throws IOException
 	 */
-	public void discoverInputs(PageInfo pageInfo, HtmlPage page) throws FailingHttpStatusCodeException, IOException{
+	public void discoverFormInputs(PageInfo pageInfo, HtmlPage page) throws FailingHttpStatusCodeException, IOException{
 		for(HtmlForm form : page.getForms()){
 			Set<String> methodInputs = null;
 			switch(form.getMethodAttribute().toLowerCase()){
@@ -189,16 +192,12 @@ public class PageEnumerator {
 	public void discoverInputs(PageInfo pageInfo, WebClient webClient) throws FailingHttpStatusCodeException, IOException{
 		try{
 			HtmlPage page = webClient.getPage(pageInfo.rootURL);
-			discoverInputs(pageInfo, page);
+			discoverFormInputs(pageInfo, page);
 		} catch(ClassCastException e){
 			logger.warn("Skipping malformed url/response: " + pageInfo.rootURL );
 		}
 	}
 	
-	
-	
-
-
 		public static void main(String[] args) throws MalformedURLException {
 			String rootURL = "http://127.0.0.1:8080/bodgeit/";
 

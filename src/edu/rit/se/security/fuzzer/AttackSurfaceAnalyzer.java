@@ -24,20 +24,20 @@ public class AttackSurfaceAnalyzer{
 		int totalInput = getInputs + postInputs + putInputs + deleteInputs;
 		
 		System.out.println("**** Site Statistics ****");
-		System.out.format("Total Inputs: %d    Average Inputs Per Page: %f%n", totalInput, ((double)totalInput)/pageCount);
-		System.out.format("Total Get Inputs: %d    Average Get Inputs Per Page: %f%n", getInputs, ((double)getInputs)/pageCount);
-		System.out.format("Total Post Inputs: %d    Average Post Inputs Per Page: %f%n", postInputs, ((double)postInputs)/pageCount);
-		System.out.format("Total Put Inputs: %d    Average Put Inputs Per Page: %f%n", putInputs, ((double)putInputs)/pageCount);
-		System.out.format("Total Delete Inputs: %d    Average Delete Inputs Per Page: %f%n%n%n", deleteInputs, ((double)deleteInputs)/pageCount);
+		System.out.format("Total Inputs: %d \tAverage Inputs Per Page: %f%n", totalInput, ((double)totalInput)/pageCount);
+		System.out.format("Total Get Inputs: %d \tAverage Get Inputs Per Page: %f%n", getInputs, ((double)getInputs)/pageCount);
+		System.out.format("Total Post Inputs: %d \tAverage Post Inputs Per Page: %f%n", postInputs, ((double)postInputs)/pageCount);
+		System.out.format("Total Put Inputs: %d \tAverage Put Inputs Per Page: %f%n", putInputs, ((double)putInputs)/pageCount);
+		System.out.format("Total Delete Inputs: %d \tAverage Delete Inputs Per Page: %f%n%n%n", deleteInputs, ((double)deleteInputs)/pageCount);
 		
 		System.out.println("**** Page Statistics ****");
 		for(PageInfo page : pages){
 			System.out.println("Page: " + page.rootURL.toString());
-			System.out.format("Total Inputs: %d    Percent Of Site: %f%n", page.inputCount(), (((double)page.inputCount())/totalInput)*100);
-			System.out.format("Total Get Inputs: %d    Percent Of Site: %f%n", page.inputCount(HTTPMethod.GET), (((double)page.inputCount(HTTPMethod.GET))/totalInput)*100);
-			System.out.format("Total Post Inputs: %d    Percent Of Site: %f%n", page.inputCount(HTTPMethod.POST), (((double)page.inputCount(HTTPMethod.POST))/totalInput)*100);
-			System.out.format("Total Put Inputs: %d    Percent Of Site: %f%n", page.inputCount(HTTPMethod.PUT), (((double)page.inputCount(HTTPMethod.PUT))/totalInput)*100);
-			System.out.format("Total Delete Inputs: %d    Percent Of Site: %f%n%n", page.inputCount(HTTPMethod.DELETE), (((double)page.inputCount(HTTPMethod.DELETE))/totalInput)*100);
+			System.out.format("Total Inputs: %d \tPercent Of Site: %f%n", page.inputCount(), (((double)page.inputCount())/totalInput)*100);
+			System.out.format("Total Get Inputs: %d \tPercent Of Site: %f%n", page.inputCount(HTTPMethod.GET), (((double)page.inputCount(HTTPMethod.GET))/totalInput)*100);
+			System.out.format("Total Post Inputs: %d \tPercent Of Site: %f%n", page.inputCount(HTTPMethod.POST), (((double)page.inputCount(HTTPMethod.POST))/totalInput)*100);
+			System.out.format("Total Put Inputs: %d \tPercent Of Site: %f%n", page.inputCount(HTTPMethod.PUT), (((double)page.inputCount(HTTPMethod.PUT))/totalInput)*100);
+			System.out.format("Total Delete Inputs: %d \tPercent Of Site: %f%n%n", page.inputCount(HTTPMethod.DELETE), (((double)page.inputCount(HTTPMethod.DELETE))/totalInput)*100);
 		}
 	}
 

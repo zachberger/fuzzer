@@ -15,6 +15,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomAttr;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
@@ -23,10 +24,10 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class PageEnumerator {
 
-	private final URL rootURL;
+	protected URL rootURL;
 	private Set<PageInfo> foundPages;
 	private Logger logger = Logger.getLogger( PageEnumerator.class );
-	private WebClient wc;
+	protected WebClient wc;
 		
 	public PageEnumerator(URL rootURL){
 		this.rootURL = rootURL;
@@ -41,7 +42,7 @@ public class PageEnumerator {
 		beforeStart();
 		try{
 			System.out.println("******** Crawling For Pages ********");
-			discoverLinks( wc, rootURL );
+			discoverLinks( rootURL );
 			List<String> myListNames = null, myListExtensions = null;
 			File page_names = new File("resources/page_names.txt");
 			File extensions = new File("resources/extensions.txt");
@@ -54,9 +55,9 @@ public class PageEnumerator {
 				e.printStackTrace();
 			}
 			System.out.println("******** Discovering Un-Linked Pages ********");
-			discoverUnlinkedPages(myListNames, myListExtensions, wc);
+//			discoverUnlinkedPages(myListNames, myListExtensions, wc);
 			return true;
-		}catch (FailingHttpStatusCodeException | IOException e) {
+		}catch(IOException e) {
 			System.err.println("Exception in PageEnumerator: " + e.getMessage());
 			return false;
 		}
@@ -67,14 +68,13 @@ public class PageEnumerator {
 		return foundPages;
 	}
 	
-	private void discoverLinks( WebClient webClient, URL rootURL ) 
-			throws FailingHttpStatusCodeException, IOException {
+	private void discoverLinks( URL rootURL ) throws IOException {
 		
 		HtmlPage page;
-		URL newURL;
-		String contentType;
+		URL newURL = null;
+		String contentType = null;
 		try{
-			page = webClient.getPage( rootURL );
+			page = wc.getPage( rootURL );
 		}catch( ClassCastException e ){
 			logger.warn("Skipping malformed url/response: " + rootURL );
 			return;
@@ -82,20 +82,14 @@ public class PageEnumerator {
 		
 		for( HtmlAnchor link : page.getAnchors() ) {
 			try{			
-				Page newPage = link.openLinkInNewWindow();
-				newURL = newPage.getUrl();
-				contentType = page.getWebResponse().getContentType();
-				if( !contentType.equals("text/html") ){
-					System.err.println("Ignorning " + contentType + ": " +  newURL );
-					continue;
-				}
+				newURL = new URL( rootURL, link.getHrefAttribute() );
 				if( !newURL.getHost().equals(rootURL.getHost())){
-					logger.warn( "Ignoring off domain url: " + newURL );
+					System.err.println( "Ignoring off domain url: " + newURL );
 					continue;
 				}
-			}catch( MalformedURLException | ClassCastException e ){
-				logger.error( e.getMessage() );
-				logger.warn("Skipping malformed url/response: " + link.getHrefAttribute() );
+
+			}catch(Exception e ){
+				System.err.println(e.getMessage());
 				continue;
 			}
 			
@@ -108,10 +102,10 @@ public class PageEnumerator {
 			String query = newURL.getQuery();
 			
 			if( foundPages.add(pageInfo) ){
-				System.out.println("Found new "+contentType+": " + newURL );
+				System.out.println("Found new page: " + newURL );
 				discoverInputs(pageInfo, page);
 				addActions(query, pageInfo);
-				discoverLinks( webClient, newURL );
+				discoverLinks( newURL );
 			}else{
 				//Find and add
 				//THIS IS BADDDDD
@@ -146,6 +140,7 @@ public class PageEnumerator {
 					foundPages.add(p);
 				} catch (FailingHttpStatusCodeException | IOException e) {
 					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}

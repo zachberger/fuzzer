@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Set;
 import org.apache.log4j.Logger;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomAttr;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
@@ -55,7 +53,7 @@ public class PageEnumerator {
 				e.printStackTrace();
 			}
 			System.out.println("******** Discovering Un-Linked Pages ********");
-//			discoverUnlinkedPages(myListNames, myListExtensions, wc);
+			discoverUnlinkedPages(myListNames, myListExtensions, wc);
 			return true;
 		}catch(IOException e) {
 			System.err.println("Exception in PageEnumerator: " + e.getMessage());
@@ -72,7 +70,6 @@ public class PageEnumerator {
 		
 		HtmlPage page;
 		URL newURL = null;
-		String contentType = null;
 		try{
 			page = wc.getPage( rootURL );
 		}catch( ClassCastException e ){
@@ -134,13 +131,12 @@ public class PageEnumerator {
 			for(String ext : extensions){
 				String pageURL = page +  "." + ext;
 				try {
-					HtmlPage success = webClient.getPage( rootURL.getFile() + pageURL );
+					HtmlPage success = webClient.getPage( new URL(rootURL,pageURL) );
 					PageInfo p = new PageInfo();
 					p.rootURL = success.getUrl();
 					foundPages.add(p);
-				} catch (FailingHttpStatusCodeException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				} catch (Exception e) {
+					//System.err.println(e.getMessage());
 				}
 			}
 		}

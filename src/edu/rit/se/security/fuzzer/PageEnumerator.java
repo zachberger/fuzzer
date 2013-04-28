@@ -205,7 +205,7 @@ public class PageEnumerator {
 
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();
-			AttackSurfaceAnalyzer.Analyze(new LinkedList<PageInfo>(pageEnumerator.getResults()));
+			AttackSurfaceAnalyzer.analyze(new LinkedList<PageInfo>(pageEnumerator.getResults()));
 
 		}
 }

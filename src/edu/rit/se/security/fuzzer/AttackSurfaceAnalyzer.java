@@ -2,11 +2,11 @@ package edu.rit.se.security.fuzzer;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.List;
 
 public class AttackSurfaceAnalyzer{
 	
-	public static void Analyze(LinkedList<PageInfo> pages){
+	public static void analyze(List<PageInfo> pages){
 		int getInputs = 0, postInputs = 0, putInputs = 0, deleteInputs = 0;
 		for(PageInfo page : pages){
 			getInputs += page.supportedActions.get(HTTPMethod.GET).size();

@@ -56,6 +56,7 @@ public class PageEnumerator {
 			}
 			System.out.println("******** Discovering Un-Linked Pages ********");
 			discoverUnlinkedPages(myListNames, myListExtensions, wc);
+			AttackSurfaceAnalyzer.analyze(new LinkedList<PageInfo>(this.getResults()));
 			return true;
 		}catch(IOException e) {
 			System.err.println("Exception in PageEnumerator: " + e.getMessage());
@@ -203,7 +204,5 @@ public class PageEnumerator {
 
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();
-			AttackSurfaceAnalyzer.analyze(new LinkedList<PageInfo>(pageEnumerator.getResults()));
-
 		}
 }

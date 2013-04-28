@@ -25,6 +25,7 @@ public class AttackSurfaceAnalyzer{
 		int totalInput = getInputs + postInputs + putInputs + deleteInputs;
 		
 		System.out.println("**** Site Statistics ****");
+		System.out.format("Total Number of Pages Found: %d\n", pages.size());
 		System.out.format("Total Inputs: %d \tAverage Inputs Per Page: %f%n", totalInput, ((double)totalInput)/pageCount);
 		System.out.format("Total Get Inputs: %d \tAverage Get Inputs Per Page: %f%n", getInputs, ((double)getInputs)/pageCount);
 		System.out.format("Total Post Inputs: %d \tAverage Post Inputs Per Page: %f%n", postInputs, ((double)postInputs)/pageCount);

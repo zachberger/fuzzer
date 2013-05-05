@@ -1,26 +1,20 @@
 package edu.rit.se.security.fuzzer;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.DomAttr;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class PageInfo {
 
 	URL rootURL;
 	Map<HTTPMethod,Set<String>> supportedActions;
-	
+	HtmlPage page;
+		
 	public PageInfo( URL newURL ) throws MalformedURLException{
 		if(newURL.getQuery() == null){
 			rootURL = newURL;

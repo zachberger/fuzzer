@@ -28,6 +28,11 @@ public class PageInfo {
 		supportedActions.put(HTTPMethod.DELETE, new HashSet<String>());		
 	}
 	
+	public PageInfo( URL newURL, HtmlPage page ) throws MalformedURLException{
+		this( newURL );
+		this.page = page;
+	}
+	
 	@Override
 	public boolean equals( Object o ){
 		if( o instanceof PageInfo ){

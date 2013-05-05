@@ -137,7 +137,7 @@ public class PageEnumerator {
 				String pageURL = page +  "." + ext;
 				try {
 					HtmlPage success = webClient.getPage( new URL(rootURL,pageURL) );
-					PageInfo p = new PageInfo( success.getUrl() );
+					PageInfo p = new PageInfo( success.getUrl(), success );
 					foundPages.add(p);
 				} catch (Exception e) {
 					//System.err.println(e.getMessage());
@@ -146,11 +146,11 @@ public class PageEnumerator {
 		}
 	}
 	
-	private void addPage(HtmlPage oldPage) throws FailingHttpStatusCodeException, IOException{
+	private void addPage(HtmlPage page ) throws FailingHttpStatusCodeException, IOException{
 		//System.out.println("Found new page: " + oldPage.getUrl() );
-		PageInfo pageInfo = new PageInfo( oldPage.getUrl() );
+		PageInfo pageInfo = new PageInfo( page.getUrl(), page );
 		foundPages.add(pageInfo);
-		discoverFormInputs(pageInfo, oldPage);
+		discoverFormInputs(pageInfo, page );
 	}
 	
 	/**

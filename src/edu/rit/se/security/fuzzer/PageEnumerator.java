@@ -13,9 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.impl.NoOpLog;
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 import org.apache.log4j.varia.NullAppender;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -137,7 +135,7 @@ public class PageEnumerator {
 				String pageURL = page +  "." + ext;
 				try {
 					HtmlPage success = webClient.getPage( new URL(rootURL,pageURL) );
-					PageInfo p = new PageInfo( success.getUrl(), success );
+					PageInfo p = new PageInfo( success.getUrl(), success,wc.getCookieManager().getCookies() );
 					foundPages.add(p);
 				} catch (Exception e) {
 					//System.err.println(e.getMessage());
@@ -148,7 +146,7 @@ public class PageEnumerator {
 	
 	private void addPage(HtmlPage page ) throws FailingHttpStatusCodeException, IOException{
 		//System.out.println("Found new page: " + oldPage.getUrl() );
-		PageInfo pageInfo = new PageInfo( page.getUrl(), page );
+		PageInfo pageInfo = new PageInfo( page.getUrl(), page, wc.getCookieManager().getCookies()  );
 		foundPages.add(pageInfo);
 		discoverFormInputs(pageInfo, page );
 	}

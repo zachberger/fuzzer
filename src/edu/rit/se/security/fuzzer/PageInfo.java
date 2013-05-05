@@ -8,12 +8,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.Cookie;
 
 public class PageInfo {
 
 	URL rootURL;
 	Map<HTTPMethod,Set<String>> supportedActions;
 	HtmlPage page;
+	HashSet<Cookie> cookies;
 		
 	public PageInfo( URL newURL ) throws MalformedURLException{
 		if(newURL.getQuery() == null){
@@ -28,9 +30,10 @@ public class PageInfo {
 		supportedActions.put(HTTPMethod.DELETE, new HashSet<String>());		
 	}
 	
-	public PageInfo( URL newURL, HtmlPage page ) throws MalformedURLException{
+	public PageInfo( URL newURL, HtmlPage page, Set<Cookie> set ) throws MalformedURLException{
 		this( newURL );
 		this.page = page;
+		this.cookies = new HashSet<Cookie>( set );
 	}
 	
 	@Override

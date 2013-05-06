@@ -36,6 +36,7 @@ public class PageEnumerator {
 	static{
 		List<Fuzzer> tmp = new ArrayList<Fuzzer>();
 		tmp.add( new PasswordGuesser() );
+		tmp.add( new SensitiveData() );
 		fuzzersToRun = Collections.unmodifiableList( tmp );
 	}
 	
@@ -52,7 +53,7 @@ public class PageEnumerator {
 	public void beforeStart(){}
 	
 	public boolean start(){
-		beforeStart();
+		//beforeStart();
 		try{
 			System.out.println("******** Crawling For Pages ********");
 			HtmlPage p = wc.getPage( rootURL );
@@ -61,8 +62,8 @@ public class PageEnumerator {
 			File page_names = new File("resources/page_names.txt");
 			File extensions = new File("resources/extensions.txt");
 			try {
-				myListNames =  getPageNames(page_names);
-				myListExtensions =  getPageNames(extensions);
+				myListNames =  getLines(page_names);
+				myListExtensions =  getLines(extensions);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -71,7 +72,7 @@ public class PageEnumerator {
 			System.out.println("******** Discovering Un-Linked Pages ********");
 			discoverUnlinkedPages(myListNames, myListExtensions, wc);
 			AttackSurfaceAnalyzer.analyze(new LinkedList<PageInfo>(this.getResults()));
-
+			
 			System.out.println("******** Fuzzing Pages ********");
 			List<PageInfo> pagesToFuzz = new ArrayList<PageInfo>();
 			for( PageInfo toFuzz : foundPages ){
@@ -83,8 +84,7 @@ public class PageEnumerator {
 				for( PageInfo toFuzz : pagesToFuzz ){
 					f.fuzz(toFuzz);
 				}
-			}
-			
+			}			
 			return true;
 		}catch(IOException e) {
 			System.err.println("Exception in PageEnumerator: " + e.getMessage());
@@ -183,7 +183,7 @@ public class PageEnumerator {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	private List<String> getPageNames( File file ) throws FileNotFoundException, IOException{
+	protected static List<String> getLines( File file ) throws FileNotFoundException, IOException{	
 		List<String> myList = new LinkedList<>();
 		try (FileReader fileReader = new FileReader(file)) {
 			try (BufferedReader br = new BufferedReader(fileReader)){ 
@@ -230,7 +230,10 @@ public class PageEnumerator {
 	}
 	
 		public static void main(String[] args) throws MalformedURLException {
-			String rootURL = "http://127.0.0.1:8080/bodgeit/";
+			// DVWA
+			//String rootURL = "http://127.0.0.1/dvwa/login.php";
+			//Bodget
+			String rootURL = "http://localhost:8080/bodgeit/";
 			BasicConfigurator.configure( new NullAppender() );
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();

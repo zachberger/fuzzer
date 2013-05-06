@@ -10,3 +10,7 @@ INDEX
 ADMIN
 DEFAULT
 STORE
+password
+about
+score
+register

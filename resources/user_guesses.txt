@@ -1,0 +1,10 @@
+admin
+ADMIN
+user
+USER
+guest
+GUEST
+test@thebodgeitstore.com
+admin@thebodgeitstore.com
+user1@thebodgeitstore.com
+username@thebodgeitstore.com

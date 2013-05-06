@@ -8,9 +8,12 @@ import java.io.IOException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.log4j.BasicConfigurator;
@@ -28,6 +31,14 @@ import com.gargoylesoftware.htmlunit.util.UrlUtils;
 public class PageEnumerator {
 
 	protected URL rootURL;
+	protected final static List<Fuzzer> fuzzersToRun;
+	private Random r = new Random( System.currentTimeMillis() );
+	static{
+		List<Fuzzer> tmp = new ArrayList<Fuzzer>();
+		tmp.add( new PasswordGuesser() );
+		fuzzersToRun = Collections.unmodifiableList( tmp );
+	}
+	
 	private Set<PageInfo> foundPages;
 	protected WebClient wc;
 		
@@ -60,6 +71,20 @@ public class PageEnumerator {
 			System.out.println("******** Discovering Un-Linked Pages ********");
 			discoverUnlinkedPages(myListNames, myListExtensions, wc);
 			AttackSurfaceAnalyzer.analyze(new LinkedList<PageInfo>(this.getResults()));
+
+			System.out.println("******** Fuzzing Pages ********");
+			List<PageInfo> pagesToFuzz = new ArrayList<PageInfo>();
+			for( PageInfo toFuzz : foundPages ){
+				if( r.nextInt( 100 ) < Settings.RANDOM_FACTOR ){
+					pagesToFuzz.add(toFuzz);
+				}
+			}
+			for( Fuzzer f : fuzzersToRun ){
+				for( PageInfo toFuzz : pagesToFuzz ){
+					f.fuzz(toFuzz);
+				}
+			}
+			
 			return true;
 		}catch(IOException e) {
 			System.err.println("Exception in PageEnumerator: " + e.getMessage());

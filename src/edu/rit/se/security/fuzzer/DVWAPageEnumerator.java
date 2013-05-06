@@ -14,6 +14,8 @@ import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 
 public class DVWAPageEnumerator extends PageEnumerator {
 
+	
+	
 	public DVWAPageEnumerator(URL rootURL) {
 		super(rootURL);
 	}

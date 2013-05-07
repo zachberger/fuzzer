@@ -3,13 +3,13 @@ package edu.rit.se.security.fuzzer;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 
 public class SensitiveData implements Fuzzer{
 
-	//not working correctly...
 	@Override
 	public void fuzz(PageInfo page) {
 		List<String> myListRegex = null;
@@ -21,12 +21,12 @@ public class SensitiveData implements Fuzzer{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("Searching for sensitive data on page " + page.page.getUrl());
-//		System.out.println("   hmmm" + page.page.asText());
+		//System.out.println("Searching for sensitive data on page " + page.page.getUrl());
 		for (String data : myListRegex) {
-			pattern.compile(data);
-			if (data.matches(page.page.asText())) {
-				System.out.println("    " + page.page.asText() + " found.");
+			pattern = Pattern.compile(data, Pattern.CASE_INSENSITIVE);
+			Matcher m = pattern.matcher(page.page.asText());
+			if(m.find()){
+				System.out.println("Potentially sentisitive data: " + m.group(0) + ", found on: " + page.page.getUrl());
 			}
 		}
 	}

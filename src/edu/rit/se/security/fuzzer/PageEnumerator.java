@@ -53,7 +53,7 @@ public class PageEnumerator {
 	public void beforeStart(){}
 	
 	public boolean start(){
-		//beforeStart();
+		beforeStart();
 		try{
 			System.out.println("******** Crawling For Pages ********");
 			HtmlPage p = wc.getPage( rootURL );
@@ -232,7 +232,7 @@ public class PageEnumerator {
 		public static void main(String[] args) throws MalformedURLException {
 			// DVWA
 			//String rootURL = "http://127.0.0.1/dvwa/login.php";
-			//Bodget
+			//BodgetIt
 			String rootURL = "http://localhost:8080/bodgeit/";
 			BasicConfigurator.configure( new NullAppender() );
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));

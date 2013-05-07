@@ -18,11 +18,11 @@ public class PageInfo {
 	HashSet<Cookie> cookies;
 		
 	public PageInfo( URL newURL ) throws MalformedURLException{
-		if(newURL.getQuery() == null){
+//		if(newURL.getQuery() == null){
 			rootURL = newURL;
-		} else {
-			rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
-		}
+//		} else {
+//			rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
+//		}
 		supportedActions = new HashMap<HTTPMethod,Set<String>>();
 		supportedActions.put(HTTPMethod.GET, new HashSet<String>());	
 		supportedActions.put(HTTPMethod.PUT, new HashSet<String>());	
@@ -46,7 +46,8 @@ public class PageInfo {
 				String castedQuery = castedObject.rootURL.getQuery() == null ? "" : castedObject.rootURL.getQuery();
 				String castedNoQuery = castedObject.rootURL.toString().replace("?"+castedQuery,"");
 				//System.out.println(origNoQuery + ":" +castedNoQuery);
-				return origNoQuery.equals(castedNoQuery);
+				//return origNoQuery.equals(castedNoQuery);
+				return rootURL.toString().equals(castedObject.rootURL.toString());
 			}
 		}
 		return false;
@@ -55,7 +56,9 @@ public class PageInfo {
 	public int hashCode(){
 		String origQuery = rootURL.getQuery() == null ? "" : rootURL.getQuery();
 		String origNoQuery = rootURL.toString().replace("?"+origQuery, "");
-		return origNoQuery.hashCode();
+		//return origNoQuery.hashCode();
+		return rootURL.toString().hashCode();
+
 	}
 	
 	public int inputCount(){

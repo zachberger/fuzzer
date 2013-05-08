@@ -33,11 +33,11 @@ import com.gargoylesoftware.htmlunit.util.UrlUtils;
 public class PageEnumerator {
 
 	protected URL rootURL;
+	protected static String loginPath = null;
 	protected final static List<Fuzzer> fuzzersToRun;
 	private Random r = new Random( System.currentTimeMillis() );
 	static{
 		List<Fuzzer> tmp = new ArrayList<Fuzzer>();
-		tmp.add( new PasswordGuesser() );
 		tmp.add( new SensitiveData() );
 		fuzzersToRun = Collections.unmodifiableList( tmp );
 	}
@@ -87,6 +87,10 @@ public class PageEnumerator {
 					f.fuzz(toFuzz);
 				}
 			}			
+			
+			if(loginPath != null)
+				PasswordGuesser.guessPassword(loginPath);
+			
 			return true;
 		}catch(IOException e) {
 			System.err.println("Exception in PageEnumerator: " + e.getMessage());
@@ -226,6 +230,7 @@ public class PageEnumerator {
 			//String rootURL = "http://127.0.0.1/dvwa/login.php";
 			//BodgetIt
 			String rootURL = "http://localhost:8080/bodgeit/";
+			loginPath = "http://localhost:8080/bodgeit/login.jsp";
 			BasicConfigurator.configure( new NullAppender() );
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();

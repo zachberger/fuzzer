@@ -24,6 +24,7 @@ public class DVWAPageEnumerator extends PageEnumerator {
 	@Override
 	public void beforeStart(){
 		try {
+			loginPath = "http://127.0.0.1/dvwa/login.php";
 			HtmlPage loginPage = wc.getPage(rootURL);
 			HtmlForm loginForm = loginPage.getForms().get(0);
 			loginForm.getInputByName("username").setValueAttribute("admin");

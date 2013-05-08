@@ -10,9 +10,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -40,12 +42,12 @@ public class PageEnumerator {
 		fuzzersToRun = Collections.unmodifiableList( tmp );
 	}
 	
-	private Set<PageInfo> foundPages;
+	private Map<String, Set<PageInfo>> foundPages;
 	protected WebClient wc;
 		
 	public PageEnumerator(URL rootURL){
 		this.rootURL = rootURL;
-		foundPages = new HashSet<PageInfo>();
+		foundPages = new HashMap<String, Set<PageInfo>>();
 		wc = new WebClient();
 		wc.getOptions().setTimeout(0);
 	}
@@ -71,17 +73,17 @@ public class PageEnumerator {
 			}
 			System.out.println("******** Discovering Un-Linked Pages ********");
 			discoverUnlinkedPages(myListNames, myListExtensions, wc);
-			AttackSurfaceAnalyzer.analyze(new LinkedList<PageInfo>(this.getResults()));
+			AttackSurfaceAnalyzer.analyze(foundPages);
 			
 			System.out.println("******** Fuzzing Pages ********");
-			List<PageInfo> pagesToFuzz = new ArrayList<PageInfo>();
-			for( PageInfo toFuzz : foundPages ){
+			List<Set<PageInfo>> pagesToFuzz = new ArrayList<Set<PageInfo>>();
+			for( Set<PageInfo> toFuzz : foundPages.values() ){
 				if( r.nextInt( 100 ) < Settings.RANDOM_FACTOR ){
 					pagesToFuzz.add(toFuzz);
 				}
 			}
 			for( Fuzzer f : fuzzersToRun ){
-				for( PageInfo toFuzz : pagesToFuzz ){
+				for( Set<PageInfo> toFuzz : pagesToFuzz ){
 					f.fuzz(toFuzz);
 				}
 			}			
@@ -93,7 +95,7 @@ public class PageEnumerator {
 
 	}
 	
-	public Set<PageInfo> getResults(){
+	public Map<String, Set<PageInfo>> getResults(){
 		return foundPages;
 	}
 	
@@ -124,33 +126,19 @@ public class PageEnumerator {
 					}
 				}
 			}
-		}else{
-			PageInfo np = new PageInfo( page.getUrl() );
-			for( PageInfo p : foundPages ){
-				if( p.equals(np) ){
-					addActions(page.getUrl().getQuery(), p);
-					break;
-				}
-			}	
 		}
 	}
 	
 	private boolean isPageUnique( URL newURL ){
 		try {
 			PageInfo pageInfo = new PageInfo( newURL );
-			return !foundPages.contains(pageInfo);
+			if(foundPages.containsKey(pageInfo.rootURL.toString()))
+				return !foundPages.get(pageInfo.rootURL.toString()).contains(pageInfo);
+			else
+				return true;
+			
 		} catch (MalformedURLException e) {
 			return false;
-		}
-	}
-	
-	private void addActions(String query, PageInfo pageInfo){
-		if( query != null ){
-			String[] params = query.split("&|;");
-			Set<String> actions = pageInfo.supportedActions.get(HTTPMethod.GET);
-			for(String param : params){
-				actions.add(param.split("=",2)[0].trim());
-			}
 		}
 	}
 	
@@ -161,7 +149,9 @@ public class PageEnumerator {
 				try {
 					HtmlPage success = webClient.getPage( new URL(rootURL,pageURL) );
 					PageInfo p = new PageInfo( success.getUrl(), success,wc.getCookieManager().getCookies() );
-					foundPages.add(p);
+					if(foundPages.get(p.rootURL.toString()) == null)
+						foundPages.put(p.rootURL.toString(), new HashSet<PageInfo>());
+					foundPages.get(p.rootURL.toString()).add(p);
 				} catch (Exception e) {
 					//System.err.println(e.getMessage());
 				}
@@ -170,9 +160,11 @@ public class PageEnumerator {
 	}
 	
 	private void addPage(HtmlPage page ) throws FailingHttpStatusCodeException, IOException{
-		//System.out.println("Found new page: " + oldPage.getUrl() );
+		System.out.println("Found new page: " + page.getUrl() );
 		PageInfo pageInfo = new PageInfo( page.getUrl(), page, wc.getCookieManager().getCookies()  );
-		foundPages.add(pageInfo);
+		if(foundPages.get(pageInfo.rootURL.toString()) == null)
+			foundPages.put(pageInfo.rootURL.toString(), new HashSet<PageInfo>());
+		foundPages.get(pageInfo.rootURL.toString()).add(pageInfo);
 		discoverFormInputs(pageInfo, page );
 	}
 	

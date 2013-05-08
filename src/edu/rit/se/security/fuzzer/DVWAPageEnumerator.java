@@ -11,6 +11,7 @@ import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
+import com.gargoylesoftware.htmlunit.util.Cookie;
 
 public class DVWAPageEnumerator extends PageEnumerator {
 
@@ -30,6 +31,16 @@ public class DVWAPageEnumerator extends PageEnumerator {
 			HtmlSubmitInput submit = loginForm.getInputByName("Login");
 			HtmlPage dvwaPage = submit.click();
 			rootURL = dvwaPage.getUrl();
+			
+			// Set the security to low
+			Cookie security = wc.getCookieManager().getCookie("security");
+			if(security != null){
+				wc.getCookieManager().removeCookie(security);
+			}
+			wc.getCookieManager().addCookie(new Cookie(rootURL.getHost(), "security", "low"));
+			
+			HtmlPage page = wc.getPage("http://127.0.0.1/dvwa/security");
+			
 		} catch (FailingHttpStatusCodeException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

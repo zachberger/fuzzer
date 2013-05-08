@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public class SanatizationFuzzer extends Object implements Fuzzer {
 
@@ -11,7 +12,7 @@ public class SanatizationFuzzer extends Object implements Fuzzer {
 	public static List<String> sql_vectors;
 
 	@Override
-	public void fuzz(PageInfo page) {
+	public void fuzz(Set<PageInfo> page) {
 		try {
 			if (xss_vectors == null || sql_vectors == null) {
 				File xss_file = new File("resources/fuzz_vectors_xss.txt");

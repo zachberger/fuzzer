@@ -1,19 +1,35 @@
 package edu.rit.se.security.fuzzer;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AttackSurfaceAnalyzer{
 	
-	public static void analyze(List<PageInfo> pages){
+	public static void analyze(Map<String, Set<PageInfo>> pageSet) throws MalformedURLException{
 		int getInputs = 0, postInputs = 0, putInputs = 0, deleteInputs = 0;
-		for(PageInfo page : pages){
-			getInputs += page.supportedActions.get(HTTPMethod.GET).size();
-			postInputs += page.supportedActions.get(HTTPMethod.POST).size();
-			putInputs += page.supportedActions.get(HTTPMethod.PUT).size();
-			deleteInputs += page.supportedActions.get(HTTPMethod.DELETE).size();
+		List<PageInfo> pages = new LinkedList<PageInfo>();
+		for(String rootPage : pageSet.keySet()){
+			PageInfo p = new PageInfo(new URL(rootPage));	
+			for(PageInfo page : pageSet.get(rootPage) ){
+				p.supportedActions.get(HTTPMethod.GET).addAll(page.supportedActions.get(HTTPMethod.GET));
+				p.supportedActions.get(HTTPMethod.PUT).addAll(page.supportedActions.get(HTTPMethod.PUT));
+				p.supportedActions.get(HTTPMethod.POST).addAll(page.supportedActions.get(HTTPMethod.POST));
+				p.supportedActions.get(HTTPMethod.DELETE).addAll(page.supportedActions.get(HTTPMethod.DELETE));
+			}
+			pages.add(p);
+
+			getInputs += p.supportedActions.get(HTTPMethod.GET).size();
+			postInputs += p.supportedActions.get(HTTPMethod.POST).size();
+			putInputs += p.supportedActions.get(HTTPMethod.PUT).size();
+			deleteInputs += p.supportedActions.get(HTTPMethod.DELETE).size();
 		}
 		
 		Collections.sort(pages, new Comparator<PageInfo>(){

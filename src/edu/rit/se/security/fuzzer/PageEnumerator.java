@@ -22,6 +22,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.varia.NullAppender;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomAttr;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
@@ -34,21 +35,21 @@ public class PageEnumerator {
 
 	protected URL rootURL;
 	protected static String loginPath = null;
+	protected static WebClient wc = new WebClient();
 	protected final static List<Fuzzer> fuzzersToRun;
 	private Random r = new Random( System.currentTimeMillis() );
 	static{
 		List<Fuzzer> tmp = new ArrayList<Fuzzer>();
 		tmp.add( new SensitiveData() );
+		tmp.add( new SanatizationFuzzer(wc));
 		fuzzersToRun = Collections.unmodifiableList( tmp );
 	}
 	
 	private Map<String, Set<PageInfo>> foundPages;
-	protected WebClient wc;
 		
 	public PageEnumerator(URL rootURL){
 		this.rootURL = rootURL;
 		foundPages = new HashMap<String, Set<PageInfo>>();
-		wc = new WebClient();
 		wc.getOptions().setTimeout(0);
 	}
 
@@ -88,8 +89,10 @@ public class PageEnumerator {
 				}
 			}			
 			
-			if(loginPath != null)
+			if(loginPath != null){
+				System.out.println("******** Guessing Passwords ********");
 				PasswordGuesser.guessPassword(loginPath);
+			}
 			
 			return true;
 		}catch(IOException e) {
@@ -103,7 +106,7 @@ public class PageEnumerator {
 		return foundPages;
 	}
 	
-	private void discoverLinks( HtmlPage page ) throws IOException {
+	protected void discoverLinks( HtmlPage page ) throws IOException {
 		if( isPageUnique( page.getUrl() ) ){
 			addPage(page);
 			for( HtmlAnchor link : page.getAnchors() ) {
@@ -113,24 +116,20 @@ public class PageEnumerator {
 						//System.err.println( "Ignoring off domain url: " + newURL );
 						continue;
 					}
-					discoverLinks( (HtmlPage) link.click() );
+					if(!exemptPage(newURL))
+						discoverLinks( (HtmlPage) link.click() );
 				}catch(Exception e ){
 					System.err.println(e.getMessage());
 					continue;
 				}
 			}
-			
-			for( HtmlElement e : page.getHtmlElementDescendants() ){
-				if( e.hasAttribute("onclick") ){
-					HtmlPage p = e.click();
-					URL newURL = new URL( UrlUtils.resolveUrl(page.getUrl(), p.getUrl().getPath() ) );
-					//If we're on a new page
-					if( !newURL.equals(page.getUrl()) ){
-						discoverLinks( p );
-					}
-				}
-			}
+		} else {
+			return;
 		}
+	}
+	
+	protected boolean exemptPage( URL url ){
+		return url.getFile().equals("/bodgeit/logout.jsp");
 	}
 	
 	private boolean isPageUnique( URL newURL ){
@@ -202,11 +201,11 @@ public class PageEnumerator {
 		for(HtmlForm form : page.getForms()){
 			Set<String> methodInputs = null;
 			switch(form.getMethodAttribute().toLowerCase()){
-				case "post": methodInputs = pageInfo.supportedActions.get(HTTPMethod.POST); break;
-				case "get": methodInputs = pageInfo.supportedActions.get(HTTPMethod.GET); break;
-				case "put": methodInputs = pageInfo.supportedActions.get(HTTPMethod.PUT); break;
-				case "delete": methodInputs = pageInfo.supportedActions.get(HTTPMethod.DELETE); break;
-				default: methodInputs = pageInfo.supportedActions.get(HTTPMethod.GET); // No form method was specified, defaults to GET
+				case "post": methodInputs = pageInfo.supportedActions.get(HttpMethod.POST); break;
+				case "get": methodInputs = pageInfo.supportedActions.get(HttpMethod.GET); break;
+				case "put": methodInputs = pageInfo.supportedActions.get(HttpMethod.PUT); break;
+				case "delete": methodInputs = pageInfo.supportedActions.get(HttpMethod.DELETE); break;
+				default: methodInputs = pageInfo.supportedActions.get(HttpMethod.GET); // No form method was specified, defaults to GET
 			}
 			if(methodInputs != null){ // Ensure that the form is set
 				for(DomAttr input : (List<DomAttr>)form.getByXPath("//input/@name")){
@@ -229,8 +228,10 @@ public class PageEnumerator {
 			// DVWA
 			//String rootURL = "http://127.0.0.1/dvwa/login.php";
 			//BodgetIt
-			String rootURL = "http://localhost:8080/bodgeit/";
-			loginPath = "http://localhost:8080/bodgeit/login.jsp";
+			//String rootURL = "http://localhost:8080/bodgeit/";
+			//loginPath = "http://localhost:8080/bodgeit/login.jsp";
+			//JPetStore
+			String rootURL = "http://127.0.0.1:8080/jpetstore/";
 			BasicConfigurator.configure( new NullAppender() );
 			PageEnumerator pageEnumerator = new PageEnumerator(new URL(rootURL));
 			pageEnumerator.start();

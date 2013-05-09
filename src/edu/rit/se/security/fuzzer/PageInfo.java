@@ -7,13 +7,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 
 public class PageInfo {
 
 	URL rootURL;
-	Map<HTTPMethod,Set<String>> supportedActions;
+	Map<HttpMethod,Set<String>> supportedActions;
 	HtmlPage page;
 	HashSet<Cookie> cookies;
 	String query;
@@ -24,13 +25,15 @@ public class PageInfo {
 			query = "";
 		} else {
 			rootURL = new URL(newURL.toString().replace("?" + newURL.getQuery(), ""));
+			rootURL = new URL(rootURL.toString().replaceFirst("#.*", ""));
 			query = "?" + newURL.getQuery();
+			query = query.replaceFirst("#.*", "");
 		}
-		supportedActions = new HashMap<HTTPMethod,Set<String>>();
-		supportedActions.put(HTTPMethod.GET, new HashSet<String>());	
-		supportedActions.put(HTTPMethod.PUT, new HashSet<String>());	
-		supportedActions.put(HTTPMethod.POST, new HashSet<String>());	
-		supportedActions.put(HTTPMethod.DELETE, new HashSet<String>());		
+		supportedActions = new HashMap<HttpMethod,Set<String>>();
+		supportedActions.put(HttpMethod.GET, new HashSet<String>());	
+		supportedActions.put(HttpMethod.PUT, new HashSet<String>());	
+		supportedActions.put(HttpMethod.POST, new HashSet<String>());	
+		supportedActions.put(HttpMethod.DELETE, new HashSet<String>());		
 	}
 	
 	public PageInfo( URL newURL, HtmlPage page, Set<Cookie> set ) throws MalformedURLException{
@@ -59,11 +62,11 @@ public class PageInfo {
 	}
 	
 	public int inputCount(){
-		return inputCount(HTTPMethod.GET) + inputCount(HTTPMethod.POST) + 
-				inputCount(HTTPMethod.PUT) + inputCount(HTTPMethod.DELETE);
+		return inputCount(HttpMethod.GET) + inputCount(HttpMethod.POST) + 
+				inputCount(HttpMethod.PUT) + inputCount(HttpMethod.DELETE);
 	}
 	
-	public int inputCount(HTTPMethod method){
+	public int inputCount(HttpMethod method){
 		return supportedActions.get(method).size();
 	}
 	
